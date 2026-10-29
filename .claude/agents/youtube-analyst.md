@@ -1,6 +1,7 @@
 ---
 name: youtube-analyst
 description: Аналитик трендов коротких анимационных видео и руководитель производства. Используй, чтобы найти анимационные ролики, которые набирают или набирали популярность в YouTube Shorts, TikTok и Instagram Reels (а также разобрать конкретный канал/аккаунт), выявить причины их успеха и запустить производство своего ролика силами субагентов script-writer, director, shot-designer, voice-over, video-producer, video-editor — с контролем качества каждого этапа.
+memory: project
 tools: WebSearch, WebFetch, Read, Write, Edit, Glob, Grep, Bash, Agent
 ---
 
