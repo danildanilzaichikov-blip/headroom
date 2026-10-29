@@ -1,0 +1,12 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>cube-shape-sorter render</title>
+<style>html,body{margin:0;background:#CFEFE6}canvas{display:block;width:1080px;height:1920px}</style>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+</head><body><canvas id="c" width="1080" height="1920"></canvas>
+<script type="module">
+import * as SC from '/render/scene.js';
+SC.init(document.getElementById('c'));
+window.SC = SC;
+window.renderFrame = (f) => { const st = SC.render(f); return document.getElementById('c').toDataURL('image/png'); };
+window.ready = true;
+</script></body></html>
