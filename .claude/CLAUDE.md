@@ -44,7 +44,13 @@
   посегментный синтез с разной высотой/темпом/громкостью + междометия, паузы,
   растянутые гласные (`analysis/voice_test_emotions.py`). Пользователь решил оставить
   RHVoice; для нейроголосов нужен домен в Allowed domains и ключ в секретах окружения.
-- Звук, музыка, SFX — синтез в numpy/scipy; мастер −14 LUFS, TP ≤ −1 dBTP.
+- Бесплатные инструменты (пользователь просил использовать их): apt — Blender 4.0 (без OIDN;
+  EEVEE на CPU через software GL работает), FluidSynth + FluidR3_GM.sf2 (живые GM-инструменты),
+  sox, rubberband-cli (сдвиг тона голоса без «бурундука»); pip — `bpy` (официальный Blender
+  с OIDN, ставится долго, в фоне); npm — `@pmndrs/assets` (CC0 HDRI Poly Haven, matcaps,
+  шрифты); Google Fonts открыт. Сайты стоков/ассетов (Poly Haven, Mixamo, Freesound,
+  Pixabay, Sketchfab, Kenney, ambientCG, archive.org) закрыты сетью.
+- Звук, музыка, SFX — синтез в numpy/scipy или FluidSynth; мастер −14 LUFS, TP ≤ −1 dBTP.
 - Прослушать звук в облаке нельзя. Встроенный плеер приложения Claude может играть
   видео без звука — давать пользователю отдельный MP3 для проверки и вариант 44.1 кГц.
 
