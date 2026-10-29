@@ -40,6 +40,12 @@ def click(ms=1.0, lp=None, hp=None):
     return x / np.max(np.abs(x))
 
 
+def sat(x, drive):
+    """Мягкое насыщение tanh: уменьшает пик-фактор удара (громче при том же пике)."""
+    x = x / np.max(np.abs(x))
+    return np.tanh(drive * x) / np.tanh(drive)
+
+
 def pad(x, n):
     y = np.zeros(n)
     y[:min(n, len(x))] += x[:n]
@@ -98,7 +104,8 @@ def bonk_mid():                 # 2.6 «БОНК!»
     f = exp_sweep(330, 160, n, 0.1)
     ph = 2 * np.pi * np.cumsum(f) / FS
     x = (np.sin(ph) + 0.2 * np.sin(2.7 * ph) + 0.25 * np.sin(2 * ph)) * exp_env(n, 0.2, 0.001)
-    return x + 0.5 * pad(click(2), n)
+    x = x + 0.5 * pad(click(2), n)
+    return sat(x, 1.6)
 
 
 def swish(dur, f0=2000, f1=800, am=None):
@@ -133,7 +140,8 @@ def bonk_krrk():                # 5.0 «БОНК-КРРК!» + «дзынь» д
         p = bpf(rng.standard_normal(ns(0.004) + 256), 2000, 4000)[256:] * np.hanning(ns(0.004))
         i = ns(0.01 + s)
         krk[i:i + len(p)] += p / np.max(np.abs(p)) * (1 - 0.06 * k)
-    return bonk + 0.45 * wood + 0.5 * krk + 0.5 * pad(click(2), n)
+    x = bonk + 0.45 * wood + 0.5 * krk + 0.5 * pad(click(2), n)
+    return sat(x, 3.0)          # плотнее и громче при том же пике, гармоники для телефона
 
 
 def chpok():                    # 6.1 «ЧПОК» пробка

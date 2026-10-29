@@ -208,7 +208,8 @@ function roundedRectPath(p, w, h, r, cx = 0, cy = 0) {
 // shape-координаты: (x, sy) → мир (x, −z) после rotateX(−π/2)
 function trianglePath(p, side, cx, cyShape) {
   const R = side / Math.sqrt(3), r = side / (2 * Math.sqrt(3));
-  p.moveTo(cx, cyShape - TRI_DIR * R); p.lineTo(cx - side / 2, cyShape + TRI_DIR * r); p.lineTo(cx + side / 2, cyShape + TRI_DIR * r); p.closePath();
+  const sx = -TRI_DIR; // сохраняем обход контура (CCW) при любом направлении вершины
+  p.moveTo(cx, cyShape - TRI_DIR * R); p.lineTo(cx + sx * side / 2, cyShape + TRI_DIR * r); p.lineTo(cx - sx * side / 2, cyShape + TRI_DIR * r); p.closePath();
   return p;
 }
 function circlePath(p, rad, cx, cy) { // явный многоугольник (absarc даёт шов-«засечку» в точке старта)
@@ -225,8 +226,8 @@ function rimGeometry(kind) {
   if (kind === 'tri') { trianglePath(sh, TRI_SIDE + 2 * 0.06 * Math.sqrt(3), 0, cy); trianglePath(hole, TRI_SIDE, 0, cy); }
   if (kind === 'sq') { squarePath(sh, 1.18, 1.35, cy); squarePath(hole, 1.06, 1.35, cy); }
   sh.holes.push(hole);
-  const g = new THREE.ExtrudeGeometry(sh, { depth: 0.16, bevelEnabled: false, curveSegments: 48 });
-  g.rotateX(-Math.PI / 2); g.translate(0, 1.06, 0); // y 1.06 … 1.22
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 0.30, bevelEnabled: false, curveSegments: 48 });
+  g.rotateX(-Math.PI / 2); g.translate(0, 0.92, 0); // y 0.92 … 1.22 (закрывает торец крышки снизу)
   return g;
 }
 function radialTexture(size = 128) {
@@ -310,7 +311,7 @@ export function init(canvas) {
   const lid = new THREE.Mesh(lidG, sorterMat); lid.castShadow = lid.receiveShadow = true; lidGroup.add(lid);
   const rimMats = {};
   for (const [k, c] of [['cir', COL.cir], ['tri', COL.tri], ['sq', COL.sq]]) {
-    rimMats[k] = new THREE.MeshStandardMaterial({ color: c, roughness: 0.45, metalness: 0, emissive: c, emissiveIntensity: 0 });
+    rimMats[k] = new THREE.MeshStandardMaterial({ color: c, roughness: 0.45, metalness: 0, emissive: c, emissiveIntensity: 0, side: THREE.DoubleSide });
     const m = new THREE.Mesh(rimGeometry(k), rimMats[k]); m.castShadow = m.receiveShadow = true; lidGroup.add(m);
   }
   // блик-«солнце» по жёлтому канту (§4.3, шейдер)
@@ -413,7 +414,7 @@ function lidPoints() {
     P.push([x, rimAt(x, z) ? 1.22 : 1.2, z]);
   }
   for (const k of ['cir', 'tri', 'sq']) {
-    for (const [x, z] of contourPts(k, 0, 0.01)) for (const y of [1.22, 1.20, 1.17, 1.14, 1.10, 1.06]) P.push([x, y, z]);
+    for (const [x, z] of contourPts(k, 0, 0.01)) for (const y of [1.22, 1.20, 1.17, 1.14, 1.10, 1.06, 1.02, 0.97, 0.92]) P.push([x, y, z]);
     for (const [x, z] of contourPts(k, 0.06, 0.02)) P.push([x, 1.22, z]);
   }
   LIDPTS = P.map((a) => new THREE.Vector3(...a));
@@ -702,3 +703,4 @@ export function probeStuck(side, rx, ry, rz, syv = 1, dir = 1) {
   const fd = n.dot(S.camera.position.clone().sub(c).normalize());
   return { side, rx, ry, rz, x: +p.x.toFixed(3), z: +p.z.toFixed(3), y: +y.toFixed(3), depth: +(1.22 - lo2).toFixed(3), faceDot: +fd.toFixed(2) };
 }
+export const getState = () => S;

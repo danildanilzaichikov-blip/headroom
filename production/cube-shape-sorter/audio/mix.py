@@ -27,6 +27,9 @@ OUT = os.path.dirname(os.path.abspath(__file__))
 TARGET_LUFS = -14.0
 CEIL_DBTP = -1.3
 MUSIC_ST_TARGET = -22.0
+# шина SFX: −4 дБ к голосу — иначе пик-фактор ударов (≈17 дБ) не даёт −14 LUFS без
+# лимитирования главных ударов и иерархия 5.0 > 2.6 > 0.4 > 11.0 сплющивается
+SFX_BUS_DB = -4.0
 
 # pan голоса: (t_from, t_to, pan) — константа на вокализациях, линейный переход в паузах
 VO_PAN = [(0.00, 2.45, -0.11), (2.60, 3.40, -0.23), (3.70, 4.90, -0.11),
@@ -115,7 +118,7 @@ def main():
     g_music_db, g_master_db = 0.0, 0.0
     for _ in range(4):
         mus = music * dg * db(g_music_db)
-        pre = vo_st + mus + sfx
+        pre = vo_st + mus + sfx * db(SFX_BUS_DB)
         g_master_db = 0.0
         for _ in range(6):                 # гейн мастера с учётом лимитера
             y, gr_curve = limiter(pre * db(g_master_db))
@@ -125,7 +128,7 @@ def main():
                 break
         g_music_db = MUSIC_ST_TARGET - (m_st + g_master_db)
     mus = music * dg * db(g_music_db)
-    pre = vo_st + mus + sfx
+    pre = vo_st + mus + sfx * db(SFX_BUS_DB)
     y, gr_curve = limiter(pre * db(g_master_db))
 
     write_wav24(os.path.join(OUT, "mix.wav"), y)
