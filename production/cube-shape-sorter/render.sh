@@ -28,9 +28,10 @@ if [[ ! -f "$AUDIO" ]]; then
   (cd audio && python3 gen_music.py && python3 gen_sfx.py && python3 mix.py)
 fi
 
-# --- грейд (direction §2.8): едва заметная виньетка (PI/12, а не PI/6: у ffmpeg
-# PI/6 даёт −44 % в углу — это не «едва заметно»; PI/12 ≈ −13 % в углу, −4 % у края), +4 % насыщенности, зерно 2 ед.
+# --- грейд (direction §2.8): едва заметная виньетка, +4 % насыщенности, зерно 2 ед.
 # (temporal, против бандинга мятного градиента), затем bt709 и yuv420p.
+# Виньетка PI/12, а не PI/6 из §2.8: у ffmpeg на кадре 9:16 PI/6 темнит угол на ≈ 44 %
+# (замер на test/f_0012), это не «едва заметно»; PI/12 — ≈ 13 % в углу, ≈ 4 % у края.
 GRADE="scale=1080:1920:flags=lanczos,vignette=angle=PI/12,eq=saturation=1.04,noise=alls=2:allf=t,scale=out_color_matrix=bt709:out_range=tv,format=yuv420p"
 
 ENC=(-c:v libx264 -profile:v high -preset slow -tune animation -crf 18 -pix_fmt yuv420p
