@@ -50,15 +50,18 @@ const HOME = new THREE.Vector3(-0.68, 1.2, -0.55);
 const CIR = new THREE.Vector3(-1.35, 1.2, 0.45);
 const TRI = new THREE.Vector3(0.0, 1.2, 0.45);
 const SQ = new THREE.Vector3(1.35, 1.2, 0.45);
+// доработка QA (утв. 2026-10-29): треугольник 1.0 → 1.08 — больше нельзя: вырез сольётся с вырезом квадрата
+export let TRI_SIDE = 1.08; // сторона треугольного отверстия (внутренний край канта)
+const EYE = 1.4;            // доработка QA: глаза и брови ×1.4
 
 // ---------------------------------------------------------------- кубик: каналы (§3.2)
 const X = [[0,-0.68,'H'],[47,-0.68,'L'],[51,-0.95,'H'],[55,-0.95,'L'],[60,-1.22,'H'],[69,-1.22,'L'],
   [78,-1.38,'H'],[81,-1.38,'L'],[93,-0.70,'H'],[116,-0.70,'L'],[120,-0.92,'H'],[135,-0.92,'L'],
-  [150,0.022,'H'],[183,0.022,'L'],[195,-0.35,'H'],[289,-0.35,'L'],[294,0.12,'H'],[298,0.12,'L'],
+  [150,0.000,'H'],[183,0.000,'L'],[195,-0.35,'H'],[289,-0.35,'L'],[294,0.12,'H'],[298,0.12,'L'],
   [303,0.58,'H'],[307,0.58,'L'],[312,1.02,'H'],[321,1.02,'L'],[330,1.35,'H'],[438,-0.68,'H']];
 const Z = [[0,-0.55,'H'],[47,-0.55,'L'],[51,-0.58,'H'],[55,-0.58,'L'],[60,-0.62,'H'],[69,-0.62,'L'],
   [78,0.30,'H'],[81,0.30,'L'],[93,-0.60,'H'],[116,-0.60,'L'],[120,-0.66,'H'],[135,-0.66,'L'],
-  [150,0.667,'H'],[183,0.667,'L'],[195,-0.62,'H'],[289,-0.62,'L'],[294,-0.68,'H'],[298,-0.68,'L'],
+  [150,0.450,'H'],[183,0.450,'L'],[195,-0.62,'H'],[289,-0.62,'L'],[294,-0.68,'H'],[298,-0.68,'L'],
   [303,-0.66,'H'],[307,-0.66,'L'],[312,-0.64,'H'],[321,-0.64,'L'],[330,0.45,'H'],[438,-0.55,'H']];
 // sy (squash); в воздухе между ключами — S; f201–243 — формула «дыхания»
 const SY = [[0,1.20,'H'],[10,1.20,'L'],[11,1.15,'H'],[12,0.65,'H'],[13,0.68,'EO'],[14,1.00,'EO'],
@@ -94,15 +97,15 @@ const Y = [[12,1.525,'H'],[13,1.540,'EO'],[14,1.700,'EO'],[16,1.875,'EI'],[21,'G
 // смещение над опорой на застревании (рывки f162/170/177)
 const COFF = [[150,0,'H'],[160,0,'EO'],[162,0.030,'H'],[165,0.030,'S'],[168,0,'EO'],[170,0.045,'H'],
   [173,0.045,'S'],[175,0,'EO'],[177,0.060,'H'],[180,0.060,'EI'],[182,0.030,'H']];
-const RX = [[0,0,'H'],[110,0,'EI'],[113,10,'EO'],[116,0,'H'],[140,0,'S'],[149,-15,'H'],
-  [183,-15,'S'],[190,0,'H'],[258,0,'S'],[263,8,'H'],[268,8,'S'],[272,0,'H']];
+const RX = [[0,0,'H'],[110,0,'EI'],[113,10,'EO'],[116,0,'H'],[140,0,'S'],[149,-35.26,'H'],
+  [183,-35.26,'S'],[190,0,'H'],[258,0,'S'],[263,8,'H'],[268,8,'S'],[272,0,'H']];
 const RY = [[0,0,'H'],[63,0,'S'],[69,20,'H'],[81,20,'S'],[93,0,'H'],[102,0,'S'],[104,8,'S'],
-  [106,-8,'S'],[108,0,'H'],[126,0,'S'],[135,-15,'H'],[183,-15,'S'],[195,0,'H'],[246,0,'S'],
+  [106,-8,'S'],[108,0,'H'],[126,0,'S'],[135,-15,'H'],[140,-15,'S'],[149,-55,'H'],[183,-55,'S'],[195,0,'H'],[246,0,'S'],
   [258,28,'H'],[288,28,'L'],[312,10,'H'],[321,10,'S'],[329,0,'H']];
 const RZ = [[0,0,'H'],[37,0,'S'],[43,12,'H'],[45,12,'S'],[51,4,'H'],[53,4,'S'],[58,0,'H'],
-  [72,0,'S'],[78,-12,'H'],[81,-12,'S'],[87,0,'H'],[140,0,'S'],[149,35,'H'],[160,35,'EO'],
-  [162,32,'H'],[165,32,'S'],[168,35,'EO'],[170,39.5,'H'],[173,39.5,'S'],[175,35,'EO'],
-  [177,29,'H'],[183,29,'S'],[192,0,'H'],[321,0,'S'],[323,-6,'S'],[329,0,'H']];
+  [72,0,'S'],[78,-12,'H'],[81,-12,'S'],[87,0,'H'],[140,0,'S'],[149,45,'H'],[160,45,'EO'],
+  [162,42,'H'],[165,42,'S'],[168,45,'EO'],[170,49.5,'H'],[173,49.5,'S'],[175,45,'EO'],
+  [177,39,'H'],[183,39,'S'],[192,0,'H'],[321,0,'S'],[323,-6,'S'],[329,0,'H']];
 const FLIPZ = [[0,0,'H'],[81,0,'S'],[91,-90,'H'],[93,0,'H'],[137,0,'S'],[148,-360,'H'],[150,0,'H']];
 const FLIPX = [[0,0,'H'],[184,0,'S'],[194,-90,'H'],[197,-90,'S'],[199,-45,'S'],[201,0,'H']];
 
@@ -150,8 +153,10 @@ const SPARKS = [ // рождение, dx, dz, v, r, цвет, жизнь
   [376,-0.05, 0.00,[-0.3,3.4, 0.2],0.07,'#FF8A2A',12]];
 
 // ---------------------------------------------------------------- камера (§2)
-const DOLLY = [[0,14.15,'H'],[210,14.15,'S'],[237,13.44,'H'],[378,13.44,'S'],[402,14.15,'H']];
-const CAM_TARGET = new THREE.Vector3(0.25, 2.10, 0);
+// доработка QA: ближе (14.15 → 13.10) и сортер выше к центру кадра; dolly-in −5% сохранён
+const D0 = 13.10, D1 = D0 * 13.44 / 14.15;
+const DOLLY = [[0,D0,'H'],[210,D0,'S'],[237,D1,'H'],[378,D1,'S'],[402,D0,'H']];
+const CAM_TARGET = new THREE.Vector3(0.30, 1.55, 0);
 const CAM_DIR = new THREE.Vector3(0, 0.5739, 0.8191).normalize();
 function shake(f) { // {dx, dy, roll°}
   let n;
@@ -173,10 +178,12 @@ export function cameraPose(f) {
 }
 
 // ---------------------------------------------------------------- падение-петля (§3.1)
+const FALL_K = 0.82;
 function fallY(f) {
   const t = f < 30 ? f / FPS + 15 : f / FPS;
   const tau = t - 14.6;
-  return 7.90 - 1.615 * tau - 7.669 * tau * tau;
+  // доработка QA: высоты над точкой касания ×FALL_K (камера ближе) — касание f12 и шов петли те же
+  return 1.7 + FALL_K * (7.90 - 1.615 * tau - 7.669 * tau * tau - 1.7);
 }
 const inFall = (f) => f < 12 || f >= 438;
 
@@ -212,7 +219,7 @@ function rimGeometry(kind) {
   const sh = new THREE.Shape(), hole = new THREE.Path();
   const cy = -0.45;
   if (kind === 'cir') { circlePath(sh, 0.46, -1.35, cy); circlePath(hole, 0.40, -1.35, cy); }
-  if (kind === 'tri') { trianglePath(sh, 1.0 + 2 * 0.06 * Math.sqrt(3), 0, cy); trianglePath(hole, 1.0, 0, cy); }
+  if (kind === 'tri') { trianglePath(sh, TRI_SIDE + 2 * 0.06 * Math.sqrt(3), 0, cy); trianglePath(hole, TRI_SIDE, 0, cy); }
   if (kind === 'sq') { squarePath(sh, 1.18, 1.35, cy); squarePath(hole, 1.06, 1.35, cy); }
   sh.holes.push(hole);
   const g = new THREE.ExtrudeGeometry(sh, { depth: 0.16, bevelEnabled: false, curveSegments: 48 });
@@ -292,7 +299,7 @@ export function init(canvas) {
   const lidGroup = new THREE.Group(); scene.add(lidGroup);
   const lidSh = roundedRectPath(new THREE.Shape(), 4.2, 2.4, 0.15);
   const holeC = circlePath(new THREE.Path(), 0.46 + 0.03, -1.35, -0.45);
-  const holeT = trianglePath(new THREE.Path(), 1.0 + 2 * 0.09 * Math.sqrt(3), 0, -0.45);
+  const holeT = trianglePath(new THREE.Path(), TRI_SIDE + 2 * 0.09 * Math.sqrt(3), 0, -0.45);
   const holeS = squarePath(new THREE.Path(), 1.18 + 0.06, 1.35, -0.45);
   lidSh.holes.push(holeC, holeT, holeS);
   const lidG = new THREE.ExtrudeGeometry(lidSh, { depth: 0.12, bevelEnabled: true, bevelSize: 0.03, bevelThickness: 0.03, bevelSegments: 3, curveSegments: 32 });
@@ -333,14 +340,14 @@ export function init(canvas) {
   const sphere = new THREE.SphereGeometry(1, 32, 20);
   const eyes = [];
   for (const sx of [-1, 1]) {
-    const eye = new THREE.Group(); eye.position.set(0.2 * sx, 0.08, 0.5); face.add(eye);
+    const eye = new THREE.Group(); eye.position.set(0.19 * sx, 0.06, 0.5); face.add(eye);
     const white = new THREE.Mesh(sphere, whiteMat);
     const pupil = new THREE.Mesh(sphere, pupilMat);
     const glint = new THREE.Mesh(sphere, glintMat);
     eye.add(white, pupil, glint);
-    const happy = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.022, 8, 16, Math.PI), pupilMat);
-    happy.position.set(0.2 * sx, 0.06, 0.53); happy.visible = false; face.add(happy);
-    const brow = new THREE.Mesh(new RoundedBoxGeometry(0.2, 0.04, 0.04, 2, 0.02), browMat);
+    const happy = new THREE.Mesh(new THREE.TorusGeometry(0.09 * EYE, 0.022 * EYE, 8, 16, Math.PI), pupilMat);
+    happy.position.set(0.19 * sx, 0.04, 0.535); happy.visible = false; face.add(happy);
+    const brow = new THREE.Mesh(new RoundedBoxGeometry(0.2 * EYE, 0.04 * EYE, 0.04 * EYE, 2, 0.02 * EYE), browMat);
     face.add(brow);
     eyes.push({ sx, eye, white, pupil, glint, happy, brow });
   }
@@ -385,7 +392,7 @@ function contourPts(kind, off, step) {
     for (let i = 0; i < n; i++) { const a = 2 * Math.PI * i / n; pts.push([-1.35 + r * Math.cos(a), 0.45 + r * Math.sin(a)]); }
   } else {
     let V;
-    if (kind === 'tri') { const sd = 1.0 + 2 * off * Math.sqrt(3), R = sd / Math.sqrt(3), r = sd / (2 * Math.sqrt(3));
+    if (kind === 'tri') { const sd = TRI_SIDE + 2 * off * Math.sqrt(3), R = sd / Math.sqrt(3), r = sd / (2 * Math.sqrt(3));
       V = [[0, 0.45 - R], [-sd / 2, 0.45 + r], [sd / 2, 0.45 + r]]; }
     else { const h = 0.53 + off; V = [[1.35 - h, 0.45 - h], [1.35 + h, 0.45 - h], [1.35 + h, 0.45 + h], [1.35 - h, 0.45 + h]]; }
     for (let i = 0; i < V.length; i++) {
@@ -482,8 +489,14 @@ function shadowParams(f, p) {
   if (f >= 408 && f <= 437) {
     const u = t - 13.6;
     const h00 = 2 * u ** 3 - 3 * u ** 2 + 1, h10 = u ** 3 - 2 * u ** 2 + u, h01 = -2 * u ** 3 + 3 * u ** 2, h11 = u ** 3 - u ** 2;
-    h = h00 * 13 + h10 * -8 + h01 * 6.20 + h11 * -1.615;
-    const s = clamp((f - 408) / 6, 0, 1); m = s * s * (3 - 2 * s);
+    h = h00 * 13 + h10 * -8 + h01 * 6.20 * FALL_K + h11 * -1.615 * FALL_K;
+  }
+  // доработка QA: тень-твист f408–f11 — функция времени петли u (0…54), а не высоты:
+  // темнее и крупнее; f449 → f0 непрерывно (u 41 → 42), на f12 = обычная тень касания
+  if (f >= 408 || f < 12) {
+    const u = f >= 408 ? f - 408 : f + 42, w = 1 - u / 54;
+    const s = clamp(u / 6, 0, 1), fade = s * s * (3 - 2 * s);
+    return { r: 0.55 * (1 - 0.7 * w * w), a: 0.45 * (1 - 0.75 * w * w * w) * fade, h };
   }
   const q = 1 - h / 14;
   return { r: 0.55 * clamp(q, 0.20, 1), a: 0.45 * clamp(q, 0.12, 1) * m, h };
@@ -546,22 +559,23 @@ export function setFrame(f) {
   for (const e of S.eyes) {
     e.eye.visible = !happy; e.happy.visible = happy;
     e.eye.scale.set(1, 1 - 0.9 * lid, 1);
-    e.white.scale.set(0.13 * wS, 0.13 * wS, 0.065 * wS);
-    const front = 0.065 * wS;
+    e.white.scale.set(0.13 * EYE * wS, 0.13 * EYE * wS, 0.065 * EYE * wS);
+    const front = 0.065 * EYE * wS;
     // смещение зрачка к проекции цели на грань (≤ 0.04)
     const local = S.face.worldToLocal(tgt.clone()).sub(e.eye.position);
     const len = local.length() || 1;
-    let ox = 0.04 * local.x / len, oy = 0.04 * local.y / len;
-    const ol = Math.hypot(ox, oy); if (ol > 0.04) { ox *= 0.04 / ol; oy *= 0.04 / ol; }
-    const pr = 0.075 * pS;
-    e.pupil.scale.set(pr, pr, 0.03);
-    e.pupil.position.set(ox, oy, front - 0.02);
-    const gr = 0.025 * gS;
-    e.glint.scale.set(gr, gr, 0.012);
-    e.glint.position.set(-0.025 + ox * 0.3, 0.03 + oy * 0.3, front + 0.012);
+    const om = 0.04 * EYE;
+    let ox = om * local.x / len, oy = om * local.y / len;
+    const ol = Math.hypot(ox, oy); if (ol > om) { ox *= om / ol; oy *= om / ol; }
+    const pr = 0.075 * EYE * pS;
+    e.pupil.scale.set(pr, pr, 0.03 * EYE);
+    e.pupil.position.set(ox, oy, front - 0.02 * EYE);
+    const gr = 0.025 * EYE * gS;
+    e.glint.scale.set(gr, gr, 0.012 * EYE);
+    e.glint.position.set(-0.035 + ox * 0.3, 0.042 + oy * 0.3, front + 0.012 * EYE);
     const isLeft = e.sx < 0;
     const ang = brow + (isLeft ? ch(BROWL_A, f) : 0);
-    e.brow.position.set(0.2 * e.sx, 0.3 + browY + (isLeft ? ch(BROWL_Y, f) : 0), 0.52);
+    e.brow.position.set(0.2 * e.sx, 0.33 + EYE * (browY + (isLeft ? ch(BROWL_Y, f) : 0)), 0.5 + 0.02 * EYE);
     // внутренний конец вниз при «+»: правая бровь +θ, левая −θ
     e.brow.rotation.set(0, 0, (e.sx > 0 ? 1 : -1) * ang * D2R);
   }
@@ -641,12 +655,12 @@ function inTri(x, z, side) {
 }
 function holeAt(x, z) {
   if (Math.hypot(x + 1.35, z - 0.45) < 0.40) return 'cir';
-  if (inTri(x, z, 1.0)) return 'tri';
+  if (inTri(x, z, TRI_SIDE)) return 'tri';
   if (Math.abs(x - 1.35) < 0.53 && Math.abs(z - 0.45) < 0.53) return 'sq';
   return null;
 }
 function rimAt(x, z) {
-  return Math.hypot(x + 1.35, z - 0.45) < 0.46 || inTri(x, z, 1.0 + 2 * 0.06 * Math.sqrt(3)) ||
+  return Math.hypot(x + 1.35, z - 0.45) < 0.46 || inTri(x, z, TRI_SIDE + 2 * 0.06 * Math.sqrt(3)) ||
     (Math.abs(x - 1.35) < 0.59 && Math.abs(z - 0.45) < 0.59);
 }
 export function penetrationScan(f0 = 0, f1 = 449) {
@@ -666,4 +680,22 @@ export function penetrationScan(f0 = 0, f1 = 449) {
       lowXZ: lowXZ.map((a) => +a.toFixed(3)), lowHole: holeAt(...lowXZ) });
   }
   return out;
+}
+
+// зонд для подбора: глубина застревания угла в треугольнике при заданной стороне и позе
+export function probeStuck(side, rx, ry, rz, syv = 1) {
+  TRI_SIDE = side; LIDPTS = null;
+  const p = { x: 0, z: 0, y: 0, sy: syv, rx, ry, rz, flipX: 0, flipZ: 0 };
+  poseRig(p);
+  const v = new THREE.Vector3(), pos = S.body.geometry.attributes.position; let lo = Infinity, lx = 0, lz = 0;
+  for (let i = 0; i < pos.count; i++) { v.fromBufferAttribute(pos, i); S.body.localToWorld(v); if (v.y < lo) { lo = v.y; lx = v.x; lz = v.z; } }
+  p.x = -lx; p.z = 0.45 - lz;
+  const y = solveLift(p, 150, 0.60 - lo);
+  poseRig({ ...p, y });
+  let lo2 = Infinity; for (let i = 0; i < pos.count; i++) { v.fromBufferAttribute(pos, i); S.body.localToWorld(v); lo2 = Math.min(lo2, v.y); }
+  const n = new THREE.Vector3(0, 0, 1).applyQuaternion(S.rot.getWorldQuaternion(new THREE.Quaternion()));
+  const c = new THREE.Vector3(p.x, y, p.z);
+  setFrame(150);
+  const fd = n.dot(S.camera.position.clone().sub(c).normalize());
+  return { side, rx, ry, rz, x: +p.x.toFixed(3), z: +p.z.toFixed(3), y: +y.toFixed(3), depth: +(1.22 - lo2).toFixed(3), faceDot: +fd.toFixed(2) };
 }

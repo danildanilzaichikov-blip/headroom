@@ -50,6 +50,9 @@ function serve() {
   if (args.includes('--scan')) {
     const r = await page.evaluate(() => window.SC.penetrationScan(0, 449));
     console.log(JSON.stringify(r));
+  } else if (opt('--eval')) {
+    const r = await page.evaluate((code) => eval(code), opt('--eval'));
+    console.log(JSON.stringify(r));
   } else if (opt('--report')) {
     const r = await page.evaluate((fr) => fr.map((f) => window.SC.frameReport(f)), parseList(opt('--report')));
     console.log(JSON.stringify(r, null, 1));
