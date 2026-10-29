@@ -52,6 +52,9 @@ const TRI = new THREE.Vector3(0.0, 1.2, 0.45);
 const SQ = new THREE.Vector3(1.35, 1.2, 0.45);
 // доработка QA (утв. 2026-10-29): треугольник 1.0 → 1.08 — больше нельзя: вырез сольётся с вырезом квадрата
 export let TRI_SIDE = 1.08; // сторона треугольного отверстия (внутренний край канта)
+// доработка QA: вершина треугольника к камере (+1; было −1 «от камеры»): тогда угол куба,
+// направленный строго вниз, совпадает с отверстием при ry ≈ 0 — лицо смотрит в камеру
+export let TRI_DIR = 1;
 const EYE = 1.4;            // доработка QA: глаза и брови ×1.4
 
 // ---------------------------------------------------------------- кубик: каналы (§3.2)
@@ -100,7 +103,7 @@ const COFF = [[150,0,'H'],[160,0,'EO'],[162,0.030,'H'],[165,0.030,'S'],[168,0,'E
 const RX = [[0,0,'H'],[110,0,'EI'],[113,10,'EO'],[116,0,'H'],[140,0,'S'],[149,-35.26,'H'],
   [183,-35.26,'S'],[190,0,'H'],[258,0,'S'],[263,8,'H'],[268,8,'S'],[272,0,'H']];
 const RY = [[0,0,'H'],[63,0,'S'],[69,20,'H'],[81,20,'S'],[93,0,'H'],[102,0,'S'],[104,8,'S'],
-  [106,-8,'S'],[108,0,'H'],[126,0,'S'],[135,-15,'H'],[140,-15,'S'],[149,-55,'H'],[183,-55,'S'],[195,0,'H'],[246,0,'S'],
+  [106,-8,'S'],[108,0,'H'],[126,0,'S'],[135,-15,'H'],[140,-15,'S'],[149,-5,'H'],[183,-5,'S'],[195,0,'H'],[246,0,'S'],
   [258,28,'H'],[288,28,'L'],[312,10,'H'],[321,10,'S'],[329,0,'H']];
 const RZ = [[0,0,'H'],[37,0,'S'],[43,12,'H'],[45,12,'S'],[51,4,'H'],[53,4,'S'],[58,0,'H'],
   [72,0,'S'],[78,-12,'H'],[81,-12,'S'],[87,0,'H'],[140,0,'S'],[149,45,'H'],[160,45,'EO'],
@@ -205,7 +208,7 @@ function roundedRectPath(p, w, h, r, cx = 0, cy = 0) {
 // shape-координаты: (x, sy) → мир (x, −z) после rotateX(−π/2)
 function trianglePath(p, side, cx, cyShape) {
   const R = side / Math.sqrt(3), r = side / (2 * Math.sqrt(3));
-  p.moveTo(cx, cyShape + R); p.lineTo(cx - side / 2, cyShape - r); p.lineTo(cx + side / 2, cyShape - r); p.closePath();
+  p.moveTo(cx, cyShape - TRI_DIR * R); p.lineTo(cx - side / 2, cyShape + TRI_DIR * r); p.lineTo(cx + side / 2, cyShape + TRI_DIR * r); p.closePath();
   return p;
 }
 function circlePath(p, rad, cx, cy) { // явный многоугольник (absarc даёт шов-«засечку» в точке старта)
@@ -393,7 +396,7 @@ function contourPts(kind, off, step) {
   } else {
     let V;
     if (kind === 'tri') { const sd = TRI_SIDE + 2 * off * Math.sqrt(3), R = sd / Math.sqrt(3), r = sd / (2 * Math.sqrt(3));
-      V = [[0, 0.45 - R], [-sd / 2, 0.45 + r], [sd / 2, 0.45 + r]]; }
+      V = [[0, 0.45 + TRI_DIR * R], [-sd / 2, 0.45 - TRI_DIR * r], [sd / 2, 0.45 - TRI_DIR * r]]; }
     else { const h = 0.53 + off; V = [[1.35 - h, 0.45 - h], [1.35 + h, 0.45 - h], [1.35 + h, 0.45 + h], [1.35 - h, 0.45 + h]]; }
     for (let i = 0; i < V.length; i++) {
       const a = V[i], b = V[(i + 1) % V.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.ceil(L / step);
@@ -645,9 +648,9 @@ export function frameReport(f) {
 }
 // проникание в крышку: вершины тела ниже верха крышки вне отверстий
 function inTri(x, z, side) {
-  // треугольник: центр (0, 0.45), вершина к −z
+  // треугольник: центр (0, 0.45), вершина по TRI_DIR
   const R = side / Math.sqrt(3), r = side / (2 * Math.sqrt(3));
-  const ax = 0, az = 0.45 - R, bx = -side / 2, bz = 0.45 + r, cx = side / 2, cz = 0.45 + r;
+  const ax = 0, az = 0.45 + TRI_DIR * R, bx = -side / 2, bz = 0.45 - TRI_DIR * r, cx = side / 2, cz = 0.45 - TRI_DIR * r;
   const s = (px, pz, qx, qz, wx, wz) => (px - wx) * (qz - wz) - (qx - wx) * (pz - wz);
   const d1 = s(x, z, ax, az, bx, bz), d2 = s(x, z, bx, bz, cx, cz), d3 = s(x, z, cx, cz, ax, az);
   const neg = d1 < 0 || d2 < 0 || d3 < 0, pos = d1 > 0 || d2 > 0 || d3 > 0;
@@ -683,8 +686,8 @@ export function penetrationScan(f0 = 0, f1 = 449) {
 }
 
 // зонд для подбора: глубина застревания угла в треугольнике при заданной стороне и позе
-export function probeStuck(side, rx, ry, rz, syv = 1) {
-  TRI_SIDE = side; LIDPTS = null;
+export function probeStuck(side, rx, ry, rz, syv = 1, dir = 1) {
+  TRI_SIDE = side; TRI_DIR = dir; LIDPTS = null;
   const p = { x: 0, z: 0, y: 0, sy: syv, rx, ry, rz, flipX: 0, flipZ: 0 };
   poseRig(p);
   const v = new THREE.Vector3(), pos = S.body.geometry.attributes.position; let lo = Infinity, lx = 0, lz = 0;
