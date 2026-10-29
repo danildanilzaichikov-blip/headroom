@@ -14,6 +14,13 @@ const { chromium } = require('playwright');
 const HERE = __dirname;
 const THREE_DIR = path.join(HERE, 'node_modules', 'three');
 const args = process.argv.slice(2);
+const KNOWN = ['--scan', '--eval', '--report', '--frames', '--range', '--out'];
+const unknown = args.filter((a) => a.startsWith('-') && !KNOWN.includes(a));
+if (args.length === 0 || unknown.length || args.includes('-h')) {
+  console.log('usage: node render.js (--range A-B | --frames a,b,c) [--out DIR] | --report LIST | --scan | --eval CODE');
+  if (unknown.length) console.error('unknown option(s): ' + unknown.join(' '));
+  process.exit(args.length === 0 ? 0 : 2);
+}
 const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : undefined; };
 const parseList = (s) => s.split(',').flatMap((p) => {
   if (p.includes('-')) { const [a, b] = p.split('-').map(Number); return Array.from({ length: b - a + 1 }, (_, i) => a + i); }
